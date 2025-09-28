@@ -26,6 +26,8 @@ canvas {
   border: 3px solid #333;
   background: #87CEEB;
 }
+
+/* Modales */
 .modal {
   display: none;
   position: fixed;
@@ -51,6 +53,7 @@ canvas {
 }
 .modal button:hover { background: #e63939; }
 
+/* Corazón del modal victoria */
 .heart {
   width: 50px;
   height: 50px;
@@ -132,6 +135,7 @@ const sonidoChoque = document.getElementById("sonidoChoque");
 const sonidoVictoria = document.getElementById("sonidoVictoria");
 
 let carro, obstaculos, frame, score, gameOver;
+let clouds = [];
 
 const mensajes = [
   "Ups, saltaste mal... intenta de nuevo 😔",
@@ -140,12 +144,16 @@ const mensajes = [
   "¿Otra vez? 😑"
 ];
 
-function init() {
-  carro = { x: 70, y: 180, width: 50, height: 30, dy:0, jumping:false };
+function init(){
+  carro = {x:70,y:180,width:50,height:30,dy:0,jumping:false};
   obstaculos = [];
   frame = 0;
   score = 0;
   gameOver = false;
+
+  // Nubes
+  clouds = [];
+  for(let i=0;i<3;i++) clouds.push({x:i*200 + 100, y: 50 + Math.random()*30});
 
   document.getElementById("modalDerrota").style.display="none";
   document.getElementById("modalVictoria").style.display="none";
@@ -156,6 +164,22 @@ function init() {
 function drawBackground(){
   ctx.fillStyle="#87CEEB";
   ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // nubes
+  ctx.fillStyle="white";
+  clouds.forEach(cloud=>{
+    ctx.beginPath();
+    ctx.arc(cloud.x, cloud.y, 20,0,Math.PI*2);
+    ctx.arc(cloud.x+20, cloud.y,25,0,Math.PI*2);
+    ctx.arc(cloud.x+40, cloud.y,20,0,Math.PI*2);
+    ctx.fill();
+  });
+  clouds.forEach(cloud=>{
+    cloud.x -= 0.5;
+    if(cloud.x < -50) cloud.x = canvas.width + 50;
+  });
+
+  // pista
   ctx.fillStyle="#555";
   ctx.fillRect(0,210,canvas.width,40);
   ctx.strokeStyle="white";
@@ -182,6 +206,7 @@ function update(){
   if(gameOver) return;
   frame++;
   ctx.clearRect(0,0,canvas.width,canvas.height);
+
   drawBackground();
 
   // gravedad
@@ -192,17 +217,16 @@ function update(){
     carro.y = 180;
     carro.jumping=false;
   }
-
   carro.y += carro.dy;
   drawCarro();
 
   // obstaculos
-  if(frame % 100 === 0){
+  if(frame % Math.max(60, 100 - Math.floor(score/500)) === 0){
     const size = Math.random()<0.5 ? 15 : 25;
-    obstaculos.push({x:600,y:210-size,size});
+    obstaculos.push({x:600, y:210-size, size});
   }
   obstaculos.forEach((o,idx)=>{
-    o.x -=5;
+    o.x -= 5 + Math.floor(score/1000);
     ctx.fillStyle="sienna";
     ctx.beginPath();
     ctx.arc(o.x, o.y+o.size, o.size,0,Math.PI*2);
@@ -216,6 +240,7 @@ function update(){
   });
   obstaculos = obstaculos.filter(o=>o.x>-50);
 
+  // puntuación
   score++;
   ctx.fillStyle="black";
   ctx.font="16px Arial";
@@ -247,9 +272,10 @@ function mostrarDerrota(){
 
 function mostrarVictoria(){
   gameOver=true;
-  document.getElementById("modalVictoria").style.display="block";
-  // Crear corazones flotando
   const modal = document.getElementById("modalVictoria");
+  document.getElementById("modalVictoria").style.display="block";
+
+  // corazones flotando
   for(let i=0;i<10;i++){
     const h=document.createElement("div");
     h.className="floating-heart";
@@ -262,8 +288,8 @@ function mostrarVictoria(){
 
 function reiniciarJuego(){ init(); }
 
-document.addEventListener("keydown",jump);
-document.addEventListener("click",jump);
+document.addEventListener("keydown", jump);
+document.addEventListener("click", jump);
 
 init();
 </script>
