@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>¡Santa!</title>
+  <title>¡Salta!</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background: #f0f0f0;
+      background: #87ceeb; /* azul cielo */
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -18,17 +18,12 @@
     }
     h1 {
       margin: 10px;
-      font-size: 28px;
+      font-size: 32px;
       color: #333;
-    }
-    #marcador {
-      font-size: 18px;
-      margin-bottom: 10px;
-      color: #444;
     }
     canvas {
       border: 3px solid #333;
-      background: #fff;
+      background: #87ceeb;
     }
     .modal {
       display: none;
@@ -93,8 +88,7 @@
 </head>
 <body>
   <h1>¡Salta!</h1>
-  <div id="marcador">Puntos: 0</div>
-  <canvas id="juego" width="600" height="200"></canvas>
+  <canvas id="juego" width="700" height="250"></canvas>
 
   <!-- Modal derrota -->
   <div id="modalDerrota" class="modal">
@@ -112,9 +106,8 @@
   <script>
     const canvas = document.getElementById("juego");
     const ctx = canvas.getContext("2d");
-    const marcador = document.getElementById("marcador");
 
-    let carro, obstaculos, frame, score, gameOver;
+    let carro, obstaculos, nubes, frame, score, gameOver;
 
     const mensajes = [
       "Ups, saltaste mal... intenta de nuevo 😔",
@@ -124,28 +117,57 @@
     ];
 
     function init() {
-      carro = { x: 50, y: 150, width: 40, height: 30, dy: 0, jumping: false };
+      carro = { x: 70, y: 180, width: 50, height: 30, dy: 0, jumping: false };
       obstaculos = [];
+      nubes = [
+        { x: 100, y: 40, size: 30 },
+        { x: 300, y: 60, size: 40 },
+        { x: 600, y: 50, size: 25 }
+      ];
       frame = 0;
       score = 0;
       gameOver = false;
-      marcador.textContent = "Puntos: 0";
       document.getElementById("modalDerrota").style.display = "none";
       document.getElementById("modalVictoria").style.display = "none";
       update();
     }
 
     function drawCarro() {
-      ctx.fillStyle = "blue";
+      // cuerpo rojo
+      ctx.fillStyle = "red";
       ctx.fillRect(carro.x, carro.y, carro.width, carro.height);
+      // techo
+      ctx.fillRect(carro.x + 10, carro.y - 20, 30, 20);
+      // llantas
       ctx.fillStyle = "black";
-      ctx.fillRect(carro.x + 5, carro.y + carro.height, 10, 10);
-      ctx.fillRect(carro.x + 25, carro.y + carro.height, 10, 10);
+      ctx.beginPath();
+      ctx.arc(carro.x + 10, carro.y + carro.height, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(carro.x + 40, carro.y + carro.height, 10, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     function drawObstaculos() {
-      ctx.fillStyle = "brown";
-      obstaculos.forEach(o => ctx.fillRect(o.x, o.y, o.width, o.height));
+      ctx.fillStyle = "saddlebrown";
+      obstaculos.forEach(o => {
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, o.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawNubes() {
+      ctx.fillStyle = "white";
+      nubes.forEach(n => {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.size, 0, Math.PI * 2);
+        ctx.arc(n.x + n.size, n.y, n.size * 0.8, 0, Math.PI * 2);
+        ctx.arc(n.x + n.size * 2, n.y, n.size, 0, Math.PI * 2);
+        ctx.fill();
+        n.x -= 1; // mover nubes
+        if (n.x < -100) n.x = canvas.width + 100;
+      });
     }
 
     function update() {
@@ -154,50 +176,65 @@
       frame++;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // suelo
-      ctx.fillStyle = "#ddd";
-      ctx.fillRect(0, 180, canvas.width, 20);
+      // cielo
+      ctx.fillStyle = "#87ceeb";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // nubes
+      drawNubes();
+
+      // carretera
+      ctx.fillStyle = "#555";
+      ctx.fillRect(0, 210, canvas.width, 40);
+      ctx.fillStyle = "white";
+      for (let i = 0; i < canvas.width; i += 40) {
+        ctx.fillRect(i, 230, 20, 4);
+      }
 
       // salto
       carro.y += carro.dy;
-      if (carro.y < 150) carro.dy += 1;
+      if (carro.y < 180) carro.dy += 1;
       else {
         carro.dy = 0;
-        carro.y = 150;
+        carro.y = 180;
         carro.jumping = false;
       }
 
       drawCarro();
 
-      // obstáculos con dificultad creciente
-      if (frame % Math.max(60, 100 - Math.floor(score / 500)) === 0) {
-        obstaculos.push({ x: 600, y: 160, width: 20, height: 20 });
+      // obstáculos
+      if (frame % Math.max(70, 120 - Math.floor(score / 300)) === 0) {
+        let size = Math.random() > 0.5 ? 20 : 30;
+        obstaculos.push({ x: canvas.width, y: 210, size: size });
       }
 
       obstaculos.forEach(o => {
         o.x -= 5 + Math.floor(score / 1000);
-        ctx.fillStyle = "brown";
-        ctx.fillRect(o.x, o.y, o.width, o.height);
+        ctx.fillStyle = "saddlebrown";
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, o.size, 0, Math.PI * 2);
+        ctx.fill();
 
         // colisión
         if (
-          carro.x < o.x + o.width &&
-          carro.x + carro.width > o.x &&
-          carro.y < o.y + o.height &&
-          carro.y + carro.height > o.y
+          carro.x < o.x + o.size &&
+          carro.x + carro.width > o.x - o.size &&
+          carro.y < o.y + o.size &&
+          carro.y + carro.height > o.y - o.size
         ) {
           mostrarDerrota();
         }
       });
 
-      // limpiar obstáculos viejos
-      obstaculos = obstaculos.filter(o => o.x > -20);
+      obstaculos = obstaculos.filter(o => o.x > -50);
 
       // score
       score++;
-      marcador.textContent = "Puntos: " + score;
+      ctx.fillStyle = "black";
+      ctx.font = "16px Arial";
+      ctx.fillText("Puntos: " + score, 10, 20);
 
-      // Victoria
+      // victoria
       if (score >= 5000) {
         mostrarVictoria();
         return;
