@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>¡Salta!</title>
+  <title>¡Santa!</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background: #aee6ff; /* azul pastel */
+      background: #f0f0f0;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -23,7 +23,7 @@
     }
     canvas {
       border: 3px solid #333;
-      background: #aee6ff; /* fondo azul pastel dentro del canvas */
+      background: #b3e5fc; /* azul pastel */
     }
     .modal {
       display: none;
@@ -120,10 +120,9 @@
       carro = { x: 50, y: 150, width: 40, height: 30, dy: 0, jumping: false };
       obstaculos = [];
       nubes = [
-        { x: 100, y: 40, r: 20 },
-        { x: 250, y: 60, r: 25 },
-        { x: 400, y: 30, r: 18 },
-        { x: 550, y: 50, r: 22 }
+        { x: 100, y: 40, size: 30 },
+        { x: 300, y: 60, size: 40 },
+        { x: 500, y: 30, size: 25 }
       ];
       frame = 0;
       score = 0;
@@ -150,13 +149,21 @@
       ctx.fillStyle = "white";
       nubes.forEach(n => {
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.arc(n.x + n.r, n.y - 10, n.r * 0.8, 0, Math.PI * 2);
-        ctx.arc(n.x + n.r * 2, n.y, n.r, 0, Math.PI * 2);
+        ctx.arc(n.x, n.y, n.size, 0, Math.PI * 2);
         ctx.fill();
-        n.x -= 0.5; // movimiento lento
-        if (n.x < -50) n.x = canvas.width + 50;
+        ctx.beginPath();
+        ctx.arc(n.x + n.size, n.y, n.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(n.x + n.size / 2, n.y - n.size / 2, n.size, 0, Math.PI * 2);
+        ctx.fill();
+        n.x -= 1;
       });
+      // regenerar nubes que se van
+      nubes = nubes.filter(n => n.x > -100);
+      if (frame % 200 === 0) {
+        nubes.push({ x: 600, y: 40 + Math.random() * 60, size: 20 + Math.random() * 20 });
+      }
     }
 
     function update() {
@@ -165,11 +172,10 @@
       frame++;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // fondo cielo
-      ctx.fillStyle = "#aee6ff";
+      // fondo cielo (azul pastel)
+      ctx.fillStyle = "#b3e5fc";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // nubes
       drawNubes();
 
       // suelo
@@ -211,12 +217,11 @@
       // limpiar obstáculos viejos
       obstaculos = obstaculos.filter(o => o.x > -20);
 
-      // score dentro del canvas
-      ctx.fillStyle = "black";
-      ctx.font = "16px Arial";
-      ctx.fillText("Puntos: " + score, canvas.width - 120, 30);
-
+      // marcador dentro del canvas
       score++;
+      ctx.fillStyle = "#333";
+      ctx.font = "16px Arial";
+      ctx.fillText("Puntos: " + score, 10, 20);
 
       // Victoria
       if (score >= 5000) {
