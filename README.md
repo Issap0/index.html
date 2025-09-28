@@ -176,8 +176,9 @@
       drawBackground();
 
       carro.y += carro.dy;
-      if (carro.y < 180) carro.dy += 1;
-      else {
+      if (carro.y < 180) {
+        carro.dy += 0.7; // gravedad más suave
+      } else {
         carro.dy = 0;
         carro.y = 180;
         carro.jumping = false;
@@ -211,7 +212,7 @@
       obstaculos = obstaculos.filter(o => o.x > -50);
 
       score++;
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = "black"; // Puntos en negro
       ctx.font = "16px Arial";
       ctx.fillText("Puntos: " + score, 480, 30);
 
@@ -226,7 +227,7 @@
 
     function jump() {
       if (!carro.jumping) {
-        carro.dy = -15;
+        carro.dy = -12; // salto más suave
         carro.jumping = true;
         sonidoSalto.play();
       }
