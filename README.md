@@ -53,26 +53,6 @@ canvas {
 }
 .modal button:hover { background: #e63939; }
 
-/* Corazón del modal victoria */
-.heart {
-  width: 50px;
-  height: 50px;
-  position: relative;
-  margin: 10px auto;
-}
-.heart:before,
-.heart:after {
-  content: "";
-  position: absolute;
-  width: 50px;
-  height: 80px;
-  background: red;
-  border-radius: 50px 50px 0 0;
-  top: 0;
-}
-.heart:before { left: 50px; transform: rotate(-45deg); transform-origin: 0 100%; }
-.heart:after { left: 0; transform: rotate(45deg); transform-origin: 100% 100%; }
-
 /* Corazones flotando en victoria */
 .floating-heart {
   position: absolute;
@@ -112,7 +92,6 @@ canvas {
 
 <!-- Modal victoria -->
 <div id="modalVictoria" class="modal">
-  <div class="heart"></div>
   <p>¡Eres increíble! por cierto... me gustan mucho tus ojitos</p>
   <button onclick="reiniciarJuego()">❤️ Volver a jugar</button>
 </div>
@@ -202,8 +181,7 @@ function update(){
 
   drawBackground();
 
-  // GRAVEDAD
-  carro.dy += 0.7;
+  carro.dy += 0.7; // gravedad
   carro.y += carro.dy;
   if(carro.y >= 180){
     carro.y = 180;
@@ -250,7 +228,7 @@ function update(){
 
 function jump(){
   if(!carro.jumping){
-    carro.dy=-14; // suficiente impulso
+    carro.dy=-14;
     carro.jumping=true;
     sonidoSalto.play();
   }
@@ -268,6 +246,7 @@ function mostrarVictoria(){
   const modal = document.getElementById("modalVictoria");
   modal.style.display="block";
 
+  // Corazones flotando
   for(let i=0;i<10;i++){
     const h=document.createElement("div");
     h.className="floating-heart";
@@ -280,7 +259,6 @@ function mostrarVictoria(){
 
 function reiniciarJuego(){ init(); }
 
-// Eventos
 document.addEventListener("keydown", function(e){
   if(e.code === "Space" || e.code === "ArrowUp"){
     e.preventDefault();
