@@ -1,3 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>¡Salta!</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  background: #87CEEB;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+h1 {
+  margin: 10px;
+  font-size: 28px;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+canvas {
+  border: 3px solid #333;
+  background: #87CEEB;
+}
+.modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  text-align: center;
+  z-index: 10;
+}
+.modal button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #ff4d4d;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+.modal button:hover { background: #e63939; }
+
+.heart {
+  width: 50px;
+  height: 50px;
+  position: relative;
+  margin: 10px auto;
+}
+.heart:before,
+.heart:after {
+  content: "";
+  position: absolute;
+  width: 50px;
+  height: 80px;
+  background: red;
+  border-radius: 50px 50px 0 0;
+  top: 0;
+}
+.heart:before { left: 50px; transform: rotate(-45deg); transform-origin: 0 100%; }
+.heart:after { left: 0; transform: rotate(45deg); transform-origin: 100% 100%; }
+@keyframes beat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Corazones flotando en victoria */
+.floating-heart {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: pink;
+  transform: rotate(45deg);
+  animation: floatUp 2s linear forwards;
+}
+.floating-heart:before, .floating-heart:after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: pink;
+  border-radius: 50%;
+}
+.floating-heart:before { top: -10px; left: 0; }
+.floating-heart:after { top: 0; left: -10px; }
+
+@keyframes floatUp {
+  0% { transform: translate(0,0) rotate(45deg); opacity:1; }
+  100% { transform: translate(-30px,-100px) rotate(45deg); opacity:0; }
+}
+</style>
+</head>
+<body>
+
+<h1>¡Salta!</h1>
+<canvas id="juego" width="600" height="250"></canvas>
+
+<!-- Modal derrota -->
+<div id="modalDerrota" class="modal">
+  <p id="mensajeDerrota"></p>
+  <button onclick="reiniciarJuego()">🔄 Reintentar</button>
+</div>
+
+<!-- Modal victoria -->
+<div id="modalVictoria" class="modal">
+  <div class="heart"></div>
+  <p>¡Eres increíble! por cierto... me gustan mucho tus ojitos</p>
+  <button onclick="reiniciarJuego()">❤️ Volver a jugar</button>
+</div>
+
+<!-- Sonidos -->
+<audio id="sonidoSalto" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+<audio id="sonidoChoque" src="https://www.soundjay.com/button/beep-10.mp3"></audio>
+<audio id="sonidoVictoria" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"></audio>
+
 <script>
 const canvas = document.getElementById("juego");
 const ctx = canvas.getContext("2d");
@@ -6,7 +131,7 @@ const sonidoSalto = document.getElementById("sonidoSalto");
 const sonidoChoque = document.getElementById("sonidoChoque");
 const sonidoVictoria = document.getElementById("sonidoVictoria");
 
-let carro, obstaculos, frame, score, gameOver, clouds, particles;
+let carro, obstaculos, frame, score, gameOver;
 
 const mensajes = [
   "Ups, saltaste mal... intenta de nuevo 😔",
@@ -16,49 +141,24 @@ const mensajes = [
 ];
 
 function init() {
-  carro = { x: 70, y: 180, width: 50, height: 30, jumping: false, jumpFrame: 0 };
+  carro = { x: 70, y: 180, width: 50, height: 30, dy:0, jumping:false };
   obstaculos = [];
-  clouds = [];
-  particles = [];
-  for (let i = 0; i < 3; i++) clouds.push({ x: i*200 + 100, y: 50 + Math.random()*30 });
   frame = 0;
   score = 0;
   gameOver = false;
 
-  document.getElementById("modalDerrota").style.display = "none";
-  document.getElementById("modalVictoria").style.display = "none";
-
-  const heart = document.querySelector(".heart");
-  heart.style.position = "absolute";
-  heart.style.top = "10px";
-  heart.style.left = "50%";
-  heart.style.transform = "translateX(-50%) scale(1)";
-  heart.style.animation = "beat 1s infinite";
+  document.getElementById("modalDerrota").style.display="none";
+  document.getElementById("modalVictoria").style.display="none";
 
   update();
 }
 
-function drawBackground() {
-  ctx.fillStyle = "#87CEEB";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "white";
-  clouds.forEach(cloud => {
-    ctx.beginPath();
-    ctx.arc(cloud.x, cloud.y, 20, 0, Math.PI*2);
-    ctx.arc(cloud.x+20, cloud.y, 25, 0, Math.PI*2);
-    ctx.arc(cloud.x+40, cloud.y, 20, 0, Math.PI*2);
-    ctx.fill();
-  });
-
-  clouds.forEach(cloud => {
-    cloud.x -= 0.5;
-    if(cloud.x < -50) cloud.x = canvas.width + 50;
-  });
-
-  ctx.fillStyle = "#555";
-  ctx.fillRect(0, 210, canvas.width, 40);
-  ctx.strokeStyle = "white";
+function drawBackground(){
+  ctx.fillStyle="#87CEEB";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#555";
+  ctx.fillRect(0,210,canvas.width,40);
+  ctx.strokeStyle="white";
   ctx.setLineDash([40,20]);
   ctx.beginPath();
   ctx.moveTo(0,230);
@@ -67,130 +167,62 @@ function drawBackground() {
   ctx.setLineDash([]);
 }
 
-function drawCarro() {
-  ctx.fillStyle = "red";
+function drawCarro(){
+  ctx.fillStyle="red";
   ctx.fillRect(carro.x, carro.y, carro.width, carro.height);
-  ctx.fillRect(carro.x + 10, carro.y - 15, 30, 15);
-
-  const rot = frame * 0.2;
-  ctx.fillStyle = "black";
-  [10,40].forEach(offset => {
-    ctx.beginPath();
-    ctx.arc(carro.x + offset, carro.y + carro.height, 8, rot, rot + Math.PI*2);
-    ctx.fill();
-  });
+  ctx.fillRect(carro.x+10, carro.y-15, 30,15);
+  ctx.fillStyle="black";
+  ctx.beginPath();
+  ctx.arc(carro.x+10, carro.y+carro.height,8,0,Math.PI*2);
+  ctx.arc(carro.x+40, carro.y+carro.height,8,0,Math.PI*2);
+  ctx.fill();
 }
 
-function createParticles(x, y, color="orange") {
-  for(let i=0;i<5;i++){
-    particles.push({x,y,dx:(Math.random()-0.5)*4,dy:(Math.random()-1.5)*4,life:30,color, type:"square"});
-  }
-}
-
-function createHeartParticles(x, y) {
-  for(let i=0;i<10;i++){
-    particles.push({
-      x, y,
-      dx: (Math.random()-0.5)*1.5,
-      dy: -Math.random()*2-1,
-      life: 60 + Math.random()*20,
-      color: "pink",
-      type: "heart",
-      size: 8 + Math.random()*4,
-      bounce: true
-    });
-  }
-}
-
-function drawParticles() {
-  particles.forEach((p, idx) => {
-    if(p.type === "square") {
-      ctx.fillStyle = p.color;
-      ctx.fillRect(p.x, p.y, 3,3);
-    } else if(p.type === "heart") {
-      ctx.fillStyle = p.color;
-      // corazón simplificado: dos círculos arriba + triángulo abajo
-      const s = p.size/2;
-      ctx.beginPath();
-      ctx.arc(p.x - s, p.y, s, Math.PI, 0);
-      ctx.arc(p.x + s, p.y, s, Math.PI, 0);
-      ctx.moveTo(p.x - p.size, p.y);
-      ctx.lineTo(p.x, p.y + p.size);
-      ctx.lineTo(p.x + p.size, p.y);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    p.x += p.dx;
-    p.y += p.dy;
-
-    if(p.type==="heart" && p.bounce && p.dy < 0 && p.life < 20){
-      p.dy = -p.dy * 0.5;
-      p.bounce = false;
-    }
-
-    p.life--;
-    if(p.life <= 0) particles.splice(idx,1);
-  });
-}
-
-function update() {
+function update(){
   if(gameOver) return;
   frame++;
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawBackground();
 
-  if(carro.jumping){
-    carro.jumpFrame++;
-    const t = carro.jumpFrame/20;
-    if(t<=1){
-      carro.y = 180 - Math.sin(t*Math.PI)*100;
-    } else {
-      carro.jumping = false;
-      carro.jumpFrame=0;
-      carro.y=180;
-    }
+  // gravedad
+  if(carro.y < 180){
+    carro.dy += 0.7;
+  } else {
+    carro.dy = 0;
+    carro.y = 180;
+    carro.jumping=false;
   }
 
+  carro.y += carro.dy;
   drawCarro();
-  drawParticles();
 
-  if(frame % Math.max(60, 100 - Math.floor(score/500)) === 0){
-    const size = Math.random() < 0.5 ? 15 : 25;
-    const y = 210 - size - (Math.random()<0.3 ? 20:0);
-    obstaculos.push({x:600,y,size});
+  // obstaculos
+  if(frame % 100 === 0){
+    const size = Math.random()<0.5 ? 15 : 25;
+    obstaculos.push({x:600,y:210-size,size});
   }
-
-  obstaculos.forEach((o, idx) => {
-    o.x -= 5 + Math.floor(score/1000);
-    ctx.fillStyle = "sienna";
+  obstaculos.forEach((o,idx)=>{
+    o.x -=5;
+    ctx.fillStyle="sienna";
     ctx.beginPath();
-    ctx.arc(o.x, o.y + o.size, o.size,0,Math.PI*2);
+    ctx.arc(o.x, o.y+o.size, o.size,0,Math.PI*2);
     ctx.fill();
 
-    if(carro.x < o.x+o.size &&
-       carro.x+carro.width>o.x-o.size &&
-       carro.y < o.y+o.size*2 &&
-       carro.y+carro.height>o.y){
+    if(carro.x<o.x+o.size && carro.x+carro.width>o.x-o.size &&
+       carro.y<o.y+o.size*2 && carro.y+carro.height>o.y){
       sonidoChoque.play();
-      createParticles(carro.x+carro.width/2, carro.y+carro.height/2,"red");
       mostrarDerrota();
     }
   });
-
   obstaculos = obstaculos.filter(o=>o.x>-50);
 
   score++;
   ctx.fillStyle="black";
-  ctx.font="20px Arial";
-  ctx.shadowColor="white";
-  ctx.shadowBlur=4;
-  ctx.fillText("Puntos: "+score,460,30);
-  ctx.shadowBlur=0;
+  ctx.font="16px Arial";
+  ctx.fillText("Puntos: "+score,480,30);
 
   if(score>=5000){
     sonidoVictoria.play();
-    createHeartParticles(carro.x+carro.width/2, carro.y+carro.height/2);
     mostrarVictoria();
     return;
   }
@@ -200,31 +232,41 @@ function update() {
 
 function jump(){
   if(!carro.jumping){
+    carro.dy=-12;
     carro.jumping=true;
-    carro.jumpFrame=0;
     sonidoSalto.play();
-    createParticles(carro.x+carro.width/2, carro.y+carro.height,"yellow");
   }
 }
 
 function mostrarDerrota(){
   gameOver=true;
   const mensaje = mensajes[Math.floor(Math.random()*mensajes.length)];
-  document.getElementById("mensajeDerrota").textContent = mensaje;
+  document.getElementById("mensajeDerrota").textContent=mensaje;
   document.getElementById("modalDerrota").style.display="block";
 }
 
 function mostrarVictoria(){
   gameOver=true;
   document.getElementById("modalVictoria").style.display="block";
+  // Crear corazones flotando
+  const modal = document.getElementById("modalVictoria");
+  for(let i=0;i<10;i++){
+    const h=document.createElement("div");
+    h.className="floating-heart";
+    h.style.left = 50 + Math.random()*80 + "px";
+    h.style.top = 50 + Math.random()*40 + "px";
+    modal.appendChild(h);
+    setTimeout(()=>h.remove(),2000);
+  }
 }
 
-function reiniciarJuego(){
-  init();
-}
+function reiniciarJuego(){ init(); }
 
 document.addEventListener("keydown",jump);
 document.addEventListener("click",jump);
 
 init();
 </script>
+
+</body>
+</html>
