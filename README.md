@@ -9,11 +9,22 @@
       padding: 0;
       background: #f0f0f0;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
       font-family: Arial, sans-serif;
       overflow: hidden;
+    }
+    h1 {
+      margin: 10px;
+      font-size: 28px;
+      color: #333;
+    }
+    #marcador {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #444;
     }
     canvas {
       border: 3px solid #333;
@@ -81,6 +92,8 @@
   </style>
 </head>
 <body>
+  <h1>¡Salta!</h1>
+  <div id="marcador">Puntos: 0</div>
   <canvas id="juego" width="600" height="200"></canvas>
 
   <!-- Modal derrota -->
@@ -99,6 +112,7 @@
   <script>
     const canvas = document.getElementById("juego");
     const ctx = canvas.getContext("2d");
+    const marcador = document.getElementById("marcador");
 
     let carro, obstaculos, frame, score, gameOver;
 
@@ -115,6 +129,7 @@
       frame = 0;
       score = 0;
       gameOver = false;
+      marcador.textContent = "Puntos: 0";
       document.getElementById("modalDerrota").style.display = "none";
       document.getElementById("modalVictoria").style.display = "none";
       update();
@@ -180,9 +195,7 @@
 
       // score
       score++;
-      ctx.fillStyle = "#333";
-      ctx.font = "16px Arial";
-      ctx.fillText("Puntos: " + score, 500, 20);
+      marcador.textContent = "Puntos: " + score;
 
       // Victoria
       if (score >= 5000) {
