@@ -29,6 +29,7 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       text-align: center;
+      font-size: 16px;
     }
     #mensajeFinal button {
       margin-top: 15px;
@@ -48,7 +49,7 @@
 <body>
   <canvas id="juego" width="600" height="250"></canvas>
   <div id="mensajeFinal">
-    Me alegra haberte conocido, señorito Andres c:<br>
+    me alegra haberte conocido c:<br>
     <button onclick="reiniciarJuego()">🔄 Reintentar</button>
   </div>
 
@@ -86,7 +87,7 @@
     }
 
     function drawObstaculos() {
-      ctx.fillStyle = "brown";
+      ctx.fillStyle = "gray";
       obstaculos.forEach(o => {
         ctx.beginPath();
         ctx.arc(o.x, o.y, o.size, 0, Math.PI * 2);
@@ -115,7 +116,7 @@
 
       drawCarro();
 
-      // Obstáculos
+      // Obstáculos (rocas)
       if (frame % 90 === 0) {
         const size = 15 + Math.random() * 15;
         obstaculos.push({ x: 600, y: 230 - size, size });
