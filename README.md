@@ -61,7 +61,7 @@
     let carro, obstaculos, frame, score, gameOver;
 
     const mensajes = [
-      "Ups, saltaste tarde, pero igual me agradas demasiado 🫶",
+      "Ups, saltaste tardees, intenta de nuevooo 😔",
       "La roca ganó esta vez, pero sigues siendo mi fav en el volante 😼",
       "Perdiste de nuevooo, pero fue con estilo, si o k? 😎"
     ];
