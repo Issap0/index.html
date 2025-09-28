@@ -145,15 +145,14 @@ const mensajes = [
 ];
 
 function init(){
-  carro = {x:70,y:180,width:50,height:30,dy:0,jumping:false};
+  carro = {x:70, y:180, width:50, height:30, dy:0, jumping:false};
   obstaculos = [];
   frame = 0;
   score = 0;
   gameOver = false;
 
-  // Nubes
   clouds = [];
-  for(let i=0;i<3;i++) clouds.push({x:i*200 + 100, y: 50 + Math.random()*30});
+  for(let i=0;i<3;i++) clouds.push({x:i*200+100, y:50+Math.random()*30});
 
   document.getElementById("modalDerrota").style.display="none";
   document.getElementById("modalVictoria").style.display="none";
@@ -165,7 +164,6 @@ function drawBackground(){
   ctx.fillStyle="#87CEEB";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // nubes
   ctx.fillStyle="white";
   clouds.forEach(cloud=>{
     ctx.beginPath();
@@ -179,7 +177,6 @@ function drawBackground(){
     if(cloud.x < -50) cloud.x = canvas.width + 50;
   });
 
-  // pista
   ctx.fillStyle="#555";
   ctx.fillRect(0,210,canvas.width,40);
   ctx.strokeStyle="white";
@@ -209,18 +206,18 @@ function update(){
 
   drawBackground();
 
-  // gravedad
-  if(carro.y < 180){
-    carro.dy += 0.7;
-  } else {
-    carro.dy = 0;
-    carro.y = 180;
-    carro.jumping=false;
-  }
+  // GRAVEDAD
+  carro.dy += 0.7;
   carro.y += carro.dy;
+  if(carro.y >= 180){
+    carro.y = 180;
+    carro.dy = 0;
+    carro.jumping = false;
+  }
+
   drawCarro();
 
-  // obstaculos
+  // Obstáculos
   if(frame % Math.max(60, 100 - Math.floor(score/500)) === 0){
     const size = Math.random()<0.5 ? 15 : 25;
     obstaculos.push({x:600, y:210-size, size});
@@ -240,7 +237,7 @@ function update(){
   });
   obstaculos = obstaculos.filter(o=>o.x>-50);
 
-  // puntuación
+  // Puntos
   score++;
   ctx.fillStyle="black";
   ctx.font="16px Arial";
@@ -275,7 +272,6 @@ function mostrarVictoria(){
   const modal = document.getElementById("modalVictoria");
   document.getElementById("modalVictoria").style.display="block";
 
-  // corazones flotando
   for(let i=0;i<10;i++){
     const h=document.createElement("div");
     h.className="floating-heart";
