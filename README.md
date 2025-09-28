@@ -28,7 +28,6 @@ function init() {
   document.getElementById("modalDerrota").style.display = "none";
   document.getElementById("modalVictoria").style.display = "none";
 
-  // Corazón posicionado y animado
   const heart = document.querySelector(".heart");
   heart.style.position = "absolute";
   heart.style.top = "10px";
@@ -43,7 +42,6 @@ function drawBackground() {
   ctx.fillStyle = "#87CEEB";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Nubes
   ctx.fillStyle = "white";
   clouds.forEach(cloud => {
     ctx.beginPath();
@@ -58,7 +56,6 @@ function drawBackground() {
     if(cloud.x < -50) cloud.x = canvas.width + 50;
   });
 
-  // Suelo
   ctx.fillStyle = "#555";
   ctx.fillRect(0, 210, canvas.width, 40);
   ctx.strokeStyle = "white";
@@ -75,7 +72,6 @@ function drawCarro() {
   ctx.fillRect(carro.x, carro.y, carro.width, carro.height);
   ctx.fillRect(carro.x + 10, carro.y - 15, 30, 15);
 
-  // Ruedas girando
   const rot = frame * 0.2;
   ctx.fillStyle = "black";
   [10,40].forEach(offset => {
@@ -85,14 +81,12 @@ function drawCarro() {
   });
 }
 
-// Partículas normales (cuadrados)
 function createParticles(x, y, color="orange") {
   for(let i=0;i<5;i++){
     particles.push({x,y,dx:(Math.random()-0.5)*4,dy:(Math.random()-1.5)*4,life:30,color, type:"square"});
   }
 }
 
-// Corazones flotantes al ganar
 function createHeartParticles(x, y) {
   for(let i=0;i<10;i++){
     particles.push({
@@ -102,7 +96,7 @@ function createHeartParticles(x, y) {
       life: 60 + Math.random()*20,
       color: "pink",
       type: "heart",
-      size: 10 + Math.random()*5,
+      size: 8 + Math.random()*4,
       bounce: true
     });
   }
@@ -115,24 +109,24 @@ function drawParticles() {
       ctx.fillRect(p.x, p.y, 3,3);
     } else if(p.type === "heart") {
       ctx.fillStyle = p.color;
+      // corazón simplificado: dos círculos arriba + triángulo abajo
+      const s = p.size/2;
       ctx.beginPath();
-      const topCurveHeight = p.size * 0.3;
-      ctx.moveTo(p.x, p.y);
-      ctx.bezierCurveTo(p.x, p.y - topCurveHeight, p.x - p.size/2, p.y - topCurveHeight, p.x - p.size/2, p.y);
-      ctx.bezierCurveTo(p.x - p.size/2, p.y + p.size/2, p.x, p.y + p.size/1.5, p.x, p.y + p.size);
-      ctx.bezierCurveTo(p.x, p.y + p.size/1.5, p.x + p.size/2, p.y + p.size/2, p.x + p.size/2, p.y);
-      ctx.bezierCurveTo(p.x + p.size/2, p.y - topCurveHeight, p.x, p.y - topCurveHeight, p.x, p.y);
+      ctx.arc(p.x - s, p.y, s, Math.PI, 0);
+      ctx.arc(p.x + s, p.y, s, Math.PI, 0);
+      ctx.moveTo(p.x - p.size, p.y);
+      ctx.lineTo(p.x, p.y + p.size);
+      ctx.lineTo(p.x + p.size, p.y);
+      ctx.closePath();
       ctx.fill();
     }
 
-    // Movimiento
     p.x += p.dx;
     p.y += p.dy;
 
-    // Rebote de corazones al llegar arriba
     if(p.type==="heart" && p.bounce && p.dy < 0 && p.life < 20){
-      p.dy = -p.dy * 0.5; // rebote más suave
-      p.bounce = false;   // solo rebota una vez
+      p.dy = -p.dy * 0.5;
+      p.bounce = false;
     }
 
     p.life--;
@@ -142,13 +136,10 @@ function drawParticles() {
 
 function update() {
   if(gameOver) return;
-
   frame++;
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
   drawBackground();
 
-  // Salto con easing
   if(carro.jumping){
     carro.jumpFrame++;
     const t = carro.jumpFrame/20;
@@ -164,7 +155,6 @@ function update() {
   drawCarro();
   drawParticles();
 
-  // Obstáculos
   if(frame % Math.max(60, 100 - Math.floor(score/500)) === 0){
     const size = Math.random() < 0.5 ? 15 : 25;
     const y = 210 - size - (Math.random()<0.3 ? 20:0);
@@ -190,7 +180,6 @@ function update() {
 
   obstaculos = obstaculos.filter(o=>o.x>-50);
 
-  // Puntuación
   score++;
   ctx.fillStyle="black";
   ctx.font="20px Arial";
