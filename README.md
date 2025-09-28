@@ -30,6 +30,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       text-align: center;
       font-size: 16px;
+      max-width: 320px;
     }
     #mensajeFinal button {
       margin-top: 15px;
@@ -49,7 +50,7 @@
 <body>
   <canvas id="juego" width="600" height="250"></canvas>
   <div id="mensajeFinal">
-    me alegra haberte conocido c:<br>
+    <div id="textoMensaje"></div>
     <button onclick="reiniciarJuego()">🔄 Reintentar</button>
   </div>
 
@@ -58,6 +59,12 @@
     const ctx = canvas.getContext("2d");
 
     let carro, obstaculos, frame, score, gameOver;
+
+    const mensajes = [
+      "Ups, saltaste tarde, pero igual me agradas demasiado 🫶",
+      "La roca ganó esta vez, pero sigues siendo mi fav en el volante 😼",
+      "Perdiste de nuevooo, pero fue con estilo, si o k? 😎"
+    ];
 
     function init() {
       carro = { x: 50, y: 200, width: 50, height: 30, dy: 0, jumping: false };
@@ -70,7 +77,7 @@
     }
 
     function drawCarro() {
-      // Cuerpo del carro
+      // Cuerpo
       ctx.fillStyle = "red";
       ctx.fillRect(carro.x, carro.y, carro.width, carro.height);
       // Ventana
@@ -105,7 +112,7 @@
       ctx.fillStyle = "#666";
       ctx.fillRect(0, 230, canvas.width, 20);
 
-      // Salto
+      // Movimiento carro
       carro.y += carro.dy;
       if (carro.y < 200) carro.dy += 1;
       else {
@@ -124,7 +131,6 @@
 
       obstaculos.forEach(o => {
         o.x -= 5;
-        // Colisión
         if (
           carro.x < o.x + o.size &&
           carro.x + carro.width > o.x - o.size &&
@@ -157,6 +163,8 @@
 
     function endGame() {
       gameOver = true;
+      const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
+      document.getElementById("textoMensaje").textContent = mensajeAleatorio;
       document.getElementById("mensajeFinal").style.display = "block";
     }
 
