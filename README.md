@@ -2,12 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>¡Salta!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Santa!</title>
   <style>
     body {
       margin: 0;
-      background: #87ceeb;
+      padding: 0;
+      background: #f0f0f0;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -16,9 +17,9 @@
     }
     canvas {
       border: 3px solid #333;
-      background: #dcdcdc;
+      background: #fff;
     }
-    #mensajeFinal {
+    #mensajeFinal, #mensajeVictoria {
       display: none;
       position: absolute;
       top: 50%;
@@ -29,10 +30,9 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       text-align: center;
-      font-size: 16px;
       max-width: 320px;
     }
-    #mensajeFinal button {
+    #mensajeFinal button, #mensajeVictoria button {
       margin-top: 15px;
       padding: 10px 20px;
       border: none;
@@ -42,142 +42,83 @@
       font-size: 14px;
       cursor: pointer;
     }
-    #mensajeFinal button:hover {
+    #mensajeFinal button:hover, #mensajeVictoria button:hover {
       background: #e63939;
+    }
+
+    /* Corazón animado */
+    .heart {
+      width: 100px;
+      height: 90px;
+      position: relative;
+      margin: 20px auto;
+      animation: beat 1s infinite;
+    }
+    .heart::before, .heart::after {
+      content: "";
+      width: 100px;
+      height: 90px;
+      background: red;
+      border-radius: 50px 50px 0 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .heart::before {
+      transform: rotate(-45deg);
+      transform-origin: 0 100%;
+    }
+    .heart::after {
+      transform: rotate(45deg);
+      transform-origin: 100% 100%;
+    }
+    @keyframes beat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
     }
   </style>
 </head>
 <body>
-  <canvas id="juego" width="600" height="250"></canvas>
+  <canvas id="juego" width="600" height="200"></canvas>
+
+  <!-- Ventana de derrota -->
   <div id="mensajeFinal">
-    <div id="textoMensaje"></div>
+    <p id="textoFinal"></p>
     <button onclick="reiniciarJuego()">🔄 Reintentar</button>
+  </div>
+
+  <!-- Ventana de victoria -->
+  <div id="mensajeVictoria">
+    <div class="heart"></div>
+    <p>me gusta tus ojitos</p>
+    <button onclick="reiniciarJuego()">💖 Jugar otra vez</button>
   </div>
 
   <script>
     const canvas = document.getElementById("juego");
     const ctx = canvas.getContext("2d");
 
-    let carro, obstaculos, frame, score, gameOver;
+    let carro;
+    let obstaculos;
+    let frame;
+    let score;
+    let gameOver;
+    let velocidad = 5;
+    let frecuencia = 120;
+
+    const metaPuntos = 5000;
 
     const mensajes = [
-      "Ups, saltaste tardees, intenta de nuevooo 😔",
-      "La roca ganó esta vez, pero sigues siendo mi fav en el volante 😼",
-      "Perdiste de nuevooo, pero fue con estilo, si o k? 😎"
+      "Ups, saltaste mal... intenta de nuevo 😔",
+      "La roca ganó esta vez, pero eres mi fav al volante JAJA 😼",
+      "Perdiste de nuevo, pero fue con estilo ¿sí o k? 😎",
+      "¿Otra vez? 😑"
     ];
 
     function init() {
-      carro = { x: 50, y: 200, width: 50, height: 30, dy: 0, jumping: false };
+      carro = { x: 50, y: 150, width: 50, height: 25, dy: 0, jumping: false };
       obstaculos = [];
       frame = 0;
       score = 0;
       gameOver = false;
-      document.getElementById("mensajeFinal").style.display = "none";
-      update();
-    }
-
-    function drawCarro() {
-      // Cuerpo
-      ctx.fillStyle = "red";
-      ctx.fillRect(carro.x, carro.y, carro.width, carro.height);
-      // Ventana
-      ctx.fillStyle = "white";
-      ctx.fillRect(carro.x + 10, carro.y + 5, 20, 15);
-      // Ruedas
-      ctx.fillStyle = "black";
-      ctx.beginPath();
-      ctx.arc(carro.x + 10, carro.y + carro.height, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(carro.x + carro.width - 10, carro.y + carro.height, 8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    function drawObstaculos() {
-      ctx.fillStyle = "gray";
-      obstaculos.forEach(o => {
-        ctx.beginPath();
-        ctx.arc(o.x, o.y, o.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    }
-
-    function update() {
-      if (gameOver) return;
-
-      frame++;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Suelo
-      ctx.fillStyle = "#666";
-      ctx.fillRect(0, 230, canvas.width, 20);
-
-      // Movimiento carro
-      carro.y += carro.dy;
-      if (carro.y < 200) carro.dy += 1;
-      else {
-        carro.dy = 0;
-        carro.y = 200;
-        carro.jumping = false;
-      }
-
-      drawCarro();
-
-      // Obstáculos (rocas)
-      if (frame % 90 === 0) {
-        const size = 15 + Math.random() * 15;
-        obstaculos.push({ x: 600, y: 230 - size, size });
-      }
-
-      obstaculos.forEach(o => {
-        o.x -= 5;
-        if (
-          carro.x < o.x + o.size &&
-          carro.x + carro.width > o.x - o.size &&
-          carro.y < o.y + o.size &&
-          carro.y + carro.height > o.y - o.size
-        ) {
-          endGame();
-        }
-      });
-
-      obstaculos = obstaculos.filter(o => o.x > -20);
-
-      drawObstaculos();
-
-      // Puntos
-      score++;
-      ctx.fillStyle = "#000";
-      ctx.font = "16px Arial";
-      ctx.fillText("Puntos: " + score, 500, 20);
-
-      requestAnimationFrame(update);
-    }
-
-    function jump() {
-      if (!carro.jumping) {
-        carro.dy = -15;
-        carro.jumping = true;
-      }
-    }
-
-    function endGame() {
-      gameOver = true;
-      const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
-      document.getElementById("textoMensaje").textContent = mensajeAleatorio;
-      document.getElementById("mensajeFinal").style.display = "block";
-    }
-
-    function reiniciarJuego() {
-      init();
-    }
-
-    document.addEventListener("keydown", e => {
-      if (e.code === "Space" || e.code === "ArrowUp") jump();
-    });
-    document.addEventListener("click", jump);
-
-    init();
-  </script>
-</body>
-</html>
+      velocidad = 5;
