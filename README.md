@@ -72,10 +72,6 @@ canvas {
 }
 .heart:before { left: 50px; transform: rotate(-45deg); transform-origin: 0 100%; }
 .heart:after { left: 0; transform: rotate(45deg); transform-origin: 100% 100%; }
-@keyframes beat {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-}
 
 /* Corazones flotando en victoria */
 .floating-heart {
@@ -254,7 +250,7 @@ function update(){
 
 function jump(){
   if(!carro.jumping){
-    carro.dy=-12;
+    carro.dy=-14; // suficiente impulso
     carro.jumping=true;
     sonidoSalto.play();
   }
@@ -270,7 +266,7 @@ function mostrarDerrota(){
 function mostrarVictoria(){
   gameOver=true;
   const modal = document.getElementById("modalVictoria");
-  document.getElementById("modalVictoria").style.display="block";
+  modal.style.display="block";
 
   for(let i=0;i<10;i++){
     const h=document.createElement("div");
@@ -284,7 +280,13 @@ function mostrarVictoria(){
 
 function reiniciarJuego(){ init(); }
 
-document.addEventListener("keydown", jump);
+// Eventos
+document.addEventListener("keydown", function(e){
+  if(e.code === "Space" || e.code === "ArrowUp"){
+    e.preventDefault();
+    jump();
+  }
+});
 document.addEventListener("click", jump);
 
 init();
