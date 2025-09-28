@@ -21,9 +21,14 @@
       font-size: 28px;
       color: #333;
     }
+    #marcador {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #444;
+    }
     canvas {
       border: 3px solid #333;
-      background: #b3e5fc; /* azul pastel */
+      background: #fff;
     }
     .modal {
       display: none;
@@ -88,6 +93,7 @@
 </head>
 <body>
   <h1>¡Salta!</h1>
+  <div id="marcador">Puntos: 0</div>
   <canvas id="juego" width="600" height="200"></canvas>
 
   <!-- Modal derrota -->
@@ -106,8 +112,9 @@
   <script>
     const canvas = document.getElementById("juego");
     const ctx = canvas.getContext("2d");
+    const marcador = document.getElementById("marcador");
 
-    let carro, obstaculos, frame, score, gameOver, nubes;
+    let carro, obstaculos, frame, score, gameOver;
 
     const mensajes = [
       "Ups, saltaste mal... intenta de nuevo 😔",
@@ -119,14 +126,10 @@
     function init() {
       carro = { x: 50, y: 150, width: 40, height: 30, dy: 0, jumping: false };
       obstaculos = [];
-      nubes = [
-        { x: 100, y: 40, size: 30 },
-        { x: 300, y: 60, size: 40 },
-        { x: 500, y: 30, size: 25 }
-      ];
       frame = 0;
       score = 0;
       gameOver = false;
+      marcador.textContent = "Puntos: 0";
       document.getElementById("modalDerrota").style.display = "none";
       document.getElementById("modalVictoria").style.display = "none";
       update();
@@ -145,38 +148,11 @@
       obstaculos.forEach(o => ctx.fillRect(o.x, o.y, o.width, o.height));
     }
 
-    function drawNubes() {
-      ctx.fillStyle = "white";
-      nubes.forEach(n => {
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(n.x + n.size, n.y, n.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(n.x + n.size / 2, n.y - n.size / 2, n.size, 0, Math.PI * 2);
-        ctx.fill();
-        n.x -= 1;
-      });
-      // regenerar nubes que se van
-      nubes = nubes.filter(n => n.x > -100);
-      if (frame % 200 === 0) {
-        nubes.push({ x: 600, y: 40 + Math.random() * 60, size: 20 + Math.random() * 20 });
-      }
-    }
-
     function update() {
       if (gameOver) return;
 
       frame++;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // fondo cielo (azul pastel)
-      ctx.fillStyle = "#b3e5fc";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      drawNubes();
 
       // suelo
       ctx.fillStyle = "#ddd";
@@ -217,11 +193,9 @@
       // limpiar obstáculos viejos
       obstaculos = obstaculos.filter(o => o.x > -20);
 
-      // marcador dentro del canvas
+      // score
       score++;
-      ctx.fillStyle = "#333";
-      ctx.font = "16px Arial";
-      ctx.fillText("Puntos: " + score, 10, 20);
+      marcador.textContent = "Puntos: " + score;
 
       // Victoria
       if (score >= 5000) {
